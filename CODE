@@ -1,0 +1,64 @@
+# Install the googlemaps library
+!pip install googlemaps
+
+import googlemaps
+from datetime import datetime
+
+# Initialize Google Maps client with your API key
+API_KEY = 'YOUR_API_KEY_HERE'
+gmaps = googlemaps.Client(key=API_KEY)
+
+def get_best_route(origin, destination, waypoints=None):
+    """
+    Function to find the best route between origin and destination using Google Maps API.
+    
+    Parameters:
+    - origin (str): The starting point.
+    - destination (str): The endpoint.
+    - waypoints (list of str): Optional list of waypoints to visit.
+    
+    Returns:
+    - route (dict): The best route information including distance and duration.
+    """
+    # Request directions
+    directions_result = gmaps.directions(
+        origin,
+        destination,
+        waypoints=waypoints,
+        optimize_waypoints=True,  # Optimize the waypoints
+        mode="driving",  # Can be changed to "walking", "bicycling", etc.
+        departure_time=datetime.now()  # Use current time for routing
+    )
+    
+    if not directions_result:
+        return None
+    
+    # Extract the best route (first result)
+    route = directions_result[0]
+    route_info = {
+        'distance': route['legs'][0]['distance']['text'],
+        'duration': route['legs'][0]['duration']['text'],
+        'start_address': route['legs'][0]['start_address'],
+        'end_address': route['legs'][0]['end_address'],
+        'steps': [step['html_instructions'] for step in route['legs'][0]['steps']]
+    }
+    
+    return route_info
+
+# Example usage
+origin = "1600 Amphitheatre Parkway, Mountain View, CA"
+destination = "1 Infinite Loop, Cupertino, CA"
+waypoints = ["350 5th Ave, New York, NY", "1600 Pennsylvania Ave NW, Washington, DC"]
+
+route_info = get_best_route(origin, destination, waypoints)
+
+if route_info:
+    print("Distance:", route_info['distance'])
+    print("Duration:", route_info['duration'])
+    print("Start Address:", route_info['start_address'])
+    print("End Address:", route_info['end_address'])
+    print("Directions:")
+    for step in route_info['steps']:
+        print(step)
+else:
+    print("No route found")
